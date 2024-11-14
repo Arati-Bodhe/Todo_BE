@@ -8,7 +8,7 @@ const verifyUser = async (accessToken) => {
     console.log("AccessToken in verifyUser:", accessToken);
     try {
         const decoded = await jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-        console.log("Decoded:", decoded);
+        //console.log("Decoded:", decoded);
         return decoded;
     } catch (error) {
         throw new ApiError(401, "Unauthorized: Invalid or expired access token");
@@ -17,6 +17,8 @@ const verifyUser = async (accessToken) => {
 
 const addTodo = async (req, res) => {
     const { title, description } = req.body;
+    console.log("addtodo req body",req.body);
+    
     const accessToken = req?.headers?.authorization?.split(" ")[1];
 
     if (!title || !description) {
@@ -48,16 +50,63 @@ const addTodo = async (req, res) => {
         return res.status(201).json(new ApiResponse(201, todo, "Todo created successfully"));
     } catch (error) {
         console.error(error);
-        return res.status(500).json(new ApiError(500, "Internal Server Error"));
+        return res.status(500).json(new ApiResponse(500, "Internal Server Error"));
     }
 };
 
 const deleteTodo = () => {
     // Delete Todo function
+    //get the todod id from req
+    //retrieve id from accesstoken
+    //check user present in db
+    //delete task
 };
 
-const completeTodo = () => {
+const editTodo =async (req,res) => {
     // Complete Todo function
+     //get the todod id from req
+    //retrieve id from accesstoken
+    //check user present in db
+    //find the task by taskid and update
+
+    const {title,description,taskId}=req.body;
+    console.log("taskid is",req.body);
+    const accessToken = req?.headers?.authorization?.split(" ")[1];
+
+    if (!title || !description || !taskId) {
+        return res.status(400).json(new ApiError(400, "Bad Request: Title and description,taskID are required"));
+    }
+
+    if (!accessToken) {
+        return res.status(401).json(new ApiError(401, "Unauthorized: Access token is required"));
+    }
+    try {
+        const verifyAccessToken = await verifyUser(accessToken);
+        if (!verifyAccessToken) {
+            return res.status(401).json(new ApiError(401, "Unauthorized: Invalid access token"));
+        }    
+        const isUserExist=await User.findById(verifyAccessToken._id);
+        if (!isUserExist) {
+            return res.status(404).json(new ApiError(404, "User not found"));
+        }
+
+        const editTodoTask=await Todo.findByIdAndUpdate(taskId,{
+            $set:{
+                title:title,
+                description:description
+            }
+        });
+        if (!editTodoTask) {
+            return res.status(405).json(new ApiError(404, "Task not found"));
+        }
+
+        return res.status(200).json(
+            new ApiResponse(200,editTodoTask,"Task edited successfully")
+        )
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(new ApiResponse(500, "Internal Server Error"));
+    }
 };
 
 const fetchTodo = async (req, res) => {
@@ -90,4 +139,4 @@ const fetchTodo = async (req, res) => {
     }
 };
 
-export { addTodo, deleteTodo, completeTodo, fetchTodo };
+export { addTodo, deleteTodo, editTodo, fetchTodo };
