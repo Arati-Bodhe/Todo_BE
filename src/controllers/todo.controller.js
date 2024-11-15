@@ -54,12 +54,35 @@ const addTodo = async (req, res) => {
     }
 };
 
-const deleteTodo = () => {
-    // Delete Todo function
-    //get the todod id from req
-    //retrieve id from accesstoken
-    //check user present in db
-    //delete task
+const deleteTodo = async(req,res) => {
+    try {
+        const taskID = req.body.id;
+        const accessToken = req?.headers?.authorization?.split(" ")[1];
+        // Check if access token is provided
+        if (!accessToken) {
+            return res.status(401).json(new ApiError(401, "Unauthorized user: Access token is missing."));
+        }
+        // Check if task ID is provided
+        if (!taskID) {
+            return res.status(400).json(new ApiError(400, "Bad Request: Task ID is required."));
+        }
+        // Verify user with access token
+        const decodedAccessToken = await verifyUser(accessToken);
+        if (!decodedAccessToken) {
+            return res.status(404).json(new ApiError(404, "User not found or invalid token."));
+        }       
+        const deletedTodo=await Todo.findByIdAndDelete({_id:taskID});        
+        if (!deletedTodo) {
+            return res.status(404).json(new ApiError(404, "Task not found or already deleted."));
+        }
+        return res.status(200).json(
+            new ApiResponse(200,deletedTodo,"Task deleted successfully")
+        )
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(new ApiResponse(500, "Internal Server Error"));
+    }
+
 };
 
 const editTodo =async (req,res) => {
