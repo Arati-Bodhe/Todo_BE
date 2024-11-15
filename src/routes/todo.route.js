@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addTodo, deleteTodo, editTodo, fetchTodo } from "../controllers/todo.controller.js";
+import { addTodo, completeTodo, deleteTodo, editTodo, fetchTodo, getCompletedTask } from "../controllers/todo.controller.js";
 
 
 const router=Router();
@@ -8,5 +8,6 @@ router.route("/fetch-todo").get(fetchTodo); //rute params
 router.route("/add").post(addTodo);
 router.route("/delete-todo").post(deleteTodo);
 router.route("/edit-todo").post(editTodo);
+router.route("/complete-todo").post(completeTodo);
 
 export default router;

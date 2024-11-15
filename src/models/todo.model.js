@@ -14,6 +14,10 @@ const todoSchema = new Schema({
     createdBy: {
         type: Schema.Types.ObjectId,
         ref: "User"
+    },
+    completed:{
+        type:Boolean,
+        default:false
     }
 
 }, {

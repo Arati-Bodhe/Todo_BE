@@ -162,4 +162,40 @@ const fetchTodo = async (req, res) => {
     }
 };
 
-export { addTodo, deleteTodo, editTodo, fetchTodo };
+const completeTodo =async (req,res)=>{
+    try {
+        const taskId=req.body.id;
+        const accessToken = req?.headers?.authorization?.split(" ")[1];
+        // Check if access token is provided
+        if (!accessToken) {
+            return res.status(401).json(new ApiError(401, "Unauthorized user: Access token is missing."));
+        }
+        // Check if task ID is provided
+        if (!taskId) {
+            return res.status(400).json(new ApiError(400, "Bad Request: Task ID is required."));
+        }
+        // Verify user with access token
+        const decodedAccessToken = await verifyUser(accessToken);
+        if (!decodedAccessToken) {
+            return res.status(404).json(new ApiError(404, "User not found or invalid token."));
+        }  
+        await Todo.updateMany(
+            {completed: { $exists:false }},
+             {$set:{completed:false}}
+        );
+        const completed= await Todo.findByIdAndUpdate({_id:taskId},{
+         $set:{
+            completed:true
+         }
+        });
+        return res.status(200).json(
+            new ApiResponse(200,completed,"Task completed successfully")
+        )
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(new ApiResponse(500, "Internal Server Error"));
+    }
+}
+
+
+export { addTodo, deleteTodo, editTodo, fetchTodo ,completeTodo,getCompletedTask};
