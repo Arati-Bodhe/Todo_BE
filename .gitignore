@@ -74,6 +74,8 @@ web_modules/
 .env.test
 .env.production
 
+# firebase sdk admin
+todo-tracker-9c0b3-firebase-adminsdk-1j0s5-e177f73a24.json
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache

@@ -1,11 +1,15 @@
 import jwt from "jsonwebtoken";
+import admin from "firebase-admin";
+import serviceAccount from "../../todo-tracker-9c0b3-firebase-adminsdk-1j0s5-e177f73a24.json" with {type: "json"};
 import { Todo } from "../models/todo.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
 const verifyUser = async (accessToken) => {
-    console.log("AccessToken in verifyUser:", accessToken);
+    //console.log("AccessToken in verifyUser:", accessToken);
     try {
         const decoded = await jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
         //console.log("Decoded:", decoded);
@@ -188,6 +192,21 @@ const completeTodo =async (req,res)=>{
             completed:true
          }
         });
+
+        //ntofication
+
+        const deviceToken=req.body?.deviceToken
+        if (deviceToken) {
+            const message = {
+                token: deviceToken,
+                notification: {
+                  title: "Task completed",
+                  body: "A task has been completed.",
+                },
+              };              
+              await admin.messaging().send(message)
+        }
+        
         return res.status(200).json(
             new ApiResponse(200,completed,"Task completed successfully")
         )
@@ -198,4 +217,4 @@ const completeTodo =async (req,res)=>{
 }
 
 
-export { addTodo, deleteTodo, editTodo, fetchTodo ,completeTodo,getCompletedTask};
+export { addTodo, deleteTodo, editTodo, fetchTodo ,completeTodo};
